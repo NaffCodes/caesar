@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encriptación y Desencriptación César</title>
+    <link rel="shortcut icon" href="images/caesar.ico" type="image/x-icon">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #f4f4f9;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .result-box p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Encriptación y Desencriptación César</h1>
+
+    <div class="form-group">
+        <label for="input-text">Texto a encriptar:</label>
+        <textarea id="input-text" rows="4" placeholder="Introduce el texto a encriptar (mínimo 50 caracteres)"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="key">Clave de Cifrado:</label>
+        <input type="number" id="key" placeholder="Introduce la clave de cifrado (número)">
+    </div>
+
+    <div class="form-group">
+        <label for="blocks">Selecciona el número de bloques:</label>
+        <select id="blocks">
+            <option value="1">1 bloque</option>
+            <option value="2">2 bloques</option>
+            <option value="3">3 bloques</option>
+        </select>
+    </div>
+
+    <button onclick="encryptText()">Encriptar</button>
+
+    <div class="result-box">
+        <p><strong>Texto Original:</strong></p>
+        <p id="original-text"></p>
+
+        <p><strong>Texto Encriptado:</strong></p>
+        <p id="encrypted-text"></p>
+
+        <p><strong>Texto Desencriptado:</strong></p>
+        <p id="decrypted-text"></p>
+    </div>
+
+    <div class="form-group">
+        <label for="input-encrypted-text">Texto Encriptado para Desencriptar:</label>
+        <textarea id="input-encrypted-text" rows="4" placeholder="Introduce el texto encriptado"></textarea>
+    </div>
+
+    <button onclick="decryptText()">Desencriptar</button>
+
+    <div class="result-box">
+        <p><strong>Texto Original Encriptado:</strong></p>
+        <p id="original-encrypted-text"></p>
+
+        <p><strong>Texto Desencriptado:</strong></p>
+        <p id="final-decrypted-text"></p>
+    </div>
+</div>
+
+<script>
+    // Función para encriptar el texto con el método César y bloques
+    function encryptText() {
+        const inputText = document.getElementById("input-text").value;
+        const key = parseInt(document.getElementById("key").value);
+        const blocks = parseInt(document.getElementById("blocks").value);
+
+        if (inputText.length < 50) {
+            alert("El texto debe contener al menos 50 caracteres.");
+            return;
+        }
+
+        let encryptedText = caesarEncrypt(inputText, key, blocks);
+        let decryptedText = caesarDecrypt(encryptedText, key, blocks);
+
+        // Mostrar los resultados
+        document.getElementById("original-text").textContent = inputText;
+        document.getElementById("encrypted-text").textContent = encryptedText;
+        document.getElementById("decrypted-text").textContent = decryptedText;
+    }
+
+    // Función para desencriptar el texto con el método César
+    function decryptText() {
+        const inputEncryptedText = document.getElementById("input-encrypted-text").value;
+        const key = parseInt(document.getElementById("key").value);
+        const blocks = parseInt(document.getElementById("blocks").value);
+
+        if (inputEncryptedText.length === 0) {
+            alert("Por favor, introduce el texto encriptado.");
+            return;
+        }
+
+        let decryptedText = caesarDecrypt(inputEncryptedText, key, blocks);
+
+        // Mostrar los resultados
+        document.getElementById("original-encrypted-text").textContent = inputEncryptedText;
+        document.getElementById("final-decrypted-text").textContent = decryptedText;
+    }
+
+    // Función para encriptar el texto con el método César y bloques
+    function caesarEncrypt(text, key, blocks) {
+        let result = '';
+        const blockSize = Math.ceil(text.length / blocks);
+
+        for (let b = 0; b < blocks; b++) {
+            const start = b * blockSize;
+            const end = start + blockSize;
+            const blockText = text.slice(start, end);
+
+            for (let i = 0; i < blockText.length; i++) {
+                let charCode = blockText.charCodeAt(i);
+
+                if (charCode >= 65 && charCode <= 90) {
+                    result += String.fromCharCode((charCode - 65 + key) % 26 + 65);
+                } else if (charCode >= 97 && charCode <= 122) {
+                    result += String.fromCharCode((charCode - 97 + key) % 26 + 97);
+                } else {
+                    result += blockText[i];
+                }
+            }
+        }
+        return result;
+    }
+
+    // Función para desencriptar el texto con el método César y bloques
+    function caesarDecrypt(text, key, blocks) {
+        let result = '';
+        const blockSize = Math.ceil(text.length / blocks);
+
+        for (let b = 0; b < blocks; b++) {
+            const start = b * blockSize;
+            const end = start + blockSize;
+            const blockText = text.slice(start, end);
+
+            for (let i = 0; i < blockText.length; i++) {
+                let charCode = blockText.charCodeAt(i);
+
+                if (charCode >= 65 && charCode <= 90) {
+                    result += String.fromCharCode((charCode - 65 - key + 26) % 26 + 65);
+                } else if (charCode >= 97 && charCode <= 122) {
+                    result += String.fromCharCode((charCode - 97 - key + 26) % 26 + 97);
+                } else {
+                    result += blockText[i];
+                }
+            }
+        }
+        return result;
+    }
+</script>
+
+</body>
+</html>
