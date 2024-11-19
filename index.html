@@ -143,11 +143,6 @@
         const keyB = parseInt(document.getElementById("keyB").value);
         const blocks = parseInt(document.getElementById("blocks").value);
 
-        if (inputText.length < 50) {
-            alert("El texto debe contener al menos 50 caracteres.");
-            return;
-        }
-
         let encryptedText = caesarEncrypt(inputText, keyA, keyB, blocks);
         let decryptedText = caesarDecrypt(encryptedText, keyA, keyB, blocks);
 
