@@ -61,6 +61,11 @@
         .result-box p {
             margin: 10px 0;
         }
+
+        #modular-inverse-widget {
+            margin: 20px 0;
+        }
+
     </style>
 </head>
 <body>
@@ -68,27 +73,34 @@
 <div class="container">
     <h1>Encriptación y Desencriptación César</h1>
 
+    <!-- Campos de entrada -->
     <div class="form-group">
         <label for="input-text">Texto a encriptar:</label>
         <textarea id="input-text" rows="4" placeholder="Introduce el texto a encriptar (mínimo 50 caracteres)"></textarea>
     </div>
 
     <div class="form-group">
-        <label for="key">Clave de Cifrado:</label>
-        <input type="number" id="key" placeholder="Introduce la clave de cifrado (número)">
+        <label for="key">Clave A:</label>
+        <input type="number" id="keyA" placeholder="Introduce la clave A">
+    </div>
+
+    <div class="form-group">
+        <label for="keyB">Clave B:</label>
+        <input type="number" id="keyB" placeholder="Introduce la clave B">
     </div>
 
     <div class="form-group">
         <label for="blocks">Selecciona el número de bloques:</label>
         <select id="blocks">
-            <option value="1">1 bloque</option>
-            <option value="2">2 bloques</option>
-            <option value="3">3 bloques</option>
+            <option value="26">26</option>
+            <option value="676">676</option>
+            <option value="17576">17576</option>
         </select>
     </div>
 
     <button onclick="encryptText()">Encriptar</button>
 
+    <!-- Resultados -->
     <div class="result-box">
         <p><strong>Texto Original:</strong></p>
         <p id="original-text"></p>
@@ -105,6 +117,13 @@
         <textarea id="input-encrypted-text" rows="4" placeholder="Introduce el texto encriptado"></textarea>
     </div>
 
+    <!-- Inverso Modular Widget -->
+    <div id="modular-inverse-widget">
+        <label for="inverse">Introduce el inverso modular de la clave A:</label>
+        <input type="number" id="inverse" placeholder="Introduce el inverso modular">
+        <div><a href="https://planetcalc.com/3312/" data-lang="es" data-code="" data-colors="#263238,#435863,#090c0d,#fa7014,#fb9b5a,#c25004" data-v="4288">PLANETCALC, Inverso Multiplicativo Modular</a><script src="https://embed.planetcalc.com/widget.js?v=4288"></script></div>
+    </div>
+
     <button onclick="decryptText()">Desencriptar</button>
 
     <div class="result-box">
@@ -117,10 +136,11 @@
 </div>
 
 <script>
-    // Función para encriptar el texto con el método César y bloques
+    // Función para encriptar el texto
     function encryptText() {
         const inputText = document.getElementById("input-text").value;
-        const key = parseInt(document.getElementById("key").value);
+        const keyA = parseInt(document.getElementById("keyA").value);
+        const keyB = parseInt(document.getElementById("keyB").value);
         const blocks = parseInt(document.getElementById("blocks").value);
 
         if (inputText.length < 50) {
@@ -128,8 +148,8 @@
             return;
         }
 
-        let encryptedText = caesarEncrypt(inputText, key, blocks);
-        let decryptedText = caesarDecrypt(encryptedText, key, blocks);
+        let encryptedText = caesarEncrypt(inputText, keyA, keyB, blocks);
+        let decryptedText = caesarDecrypt(encryptedText, keyA, keyB, blocks);
 
         // Mostrar los resultados
         document.getElementById("original-text").textContent = inputText;
@@ -137,31 +157,38 @@
         document.getElementById("decrypted-text").textContent = decryptedText;
     }
 
-    // Función para desencriptar el texto con el método César
+    // Función para desencriptar el texto
     function decryptText() {
         const inputEncryptedText = document.getElementById("input-encrypted-text").value;
-        const key = parseInt(document.getElementById("key").value);
+        const keyA = parseInt(document.getElementById("keyA").value);
+        const keyB = parseInt(document.getElementById("keyB").value);
         const blocks = parseInt(document.getElementById("blocks").value);
+        const aInverse = parseInt(document.getElementById("inverse").value);
 
         if (inputEncryptedText.length === 0) {
             alert("Por favor, introduce el texto encriptado.");
             return;
         }
 
-        let decryptedText = caesarDecrypt(inputEncryptedText, key, blocks);
+        if (isNaN(aInverse)) {
+            alert("Por favor, ingresa el inverso modular de la clave A.");
+            return;
+        }
+
+        let decryptedText = caesarDecrypt(inputEncryptedText, aInverse, keyB, blocks);
 
         // Mostrar los resultados
         document.getElementById("original-encrypted-text").textContent = inputEncryptedText;
         document.getElementById("final-decrypted-text").textContent = decryptedText;
     }
 
-    // Función para encriptar el texto con el método César y bloques
-    function caesarEncrypt(text, key, blocks) {
+    // Función para encriptar el texto con el método César
+    function caesarEncrypt(text, a, b, blocks) {
         let result = '';
         const blockSize = Math.ceil(text.length / blocks);
 
-        for (let b = 0; b < blocks; b++) {
-            const start = b * blockSize;
+        for (let bIndex = 0; bIndex < blocks; bIndex++) {
+            const start = bIndex * blockSize;
             const end = start + blockSize;
             const blockText = text.slice(start, end);
 
@@ -169,9 +196,9 @@
                 let charCode = blockText.charCodeAt(i);
 
                 if (charCode >= 65 && charCode <= 90) {
-                    result += String.fromCharCode((charCode - 65 + key) % 26 + 65);
+                    result += String.fromCharCode(((a * (charCode - 65) + b) % 26) + 65);
                 } else if (charCode >= 97 && charCode <= 122) {
-                    result += String.fromCharCode((charCode - 97 + key) % 26 + 97);
+                    result += String.fromCharCode(((a * (charCode - 97) + b) % 26) + 97);
                 } else {
                     result += blockText[i];
                 }
@@ -180,13 +207,13 @@
         return result;
     }
 
-    // Función para desencriptar el texto con el método César y bloques
-    function caesarDecrypt(text, key, blocks) {
+    // Función para desencriptar el texto con el método César
+    function caesarDecrypt(text, aInverse, b, blocks) {
         let result = '';
         const blockSize = Math.ceil(text.length / blocks);
 
-        for (let b = 0; b < blocks; b++) {
-            const start = b * blockSize;
+        for (let bIndex = 0; bIndex < blocks; bIndex++) {
+            const start = bIndex * blockSize;
             const end = start + blockSize;
             const blockText = text.slice(start, end);
 
@@ -194,9 +221,11 @@
                 let charCode = blockText.charCodeAt(i);
 
                 if (charCode >= 65 && charCode <= 90) {
-                    result += String.fromCharCode((charCode - 65 - key + 26) % 26 + 65);
+                    // Desencriptar usando la fórmula: D(y) = [(y - b) * a^-1] % 26
+                    result += String.fromCharCode(((aInverse * (charCode - 65 - b + 26)) % 26) + 65);
                 } else if (charCode >= 97 && charCode <= 122) {
-                    result += String.fromCharCode((charCode - 97 - key + 26) % 26 + 97);
+                    // Desencriptar para minúsculas
+                    result += String.fromCharCode(((aInverse * (charCode - 97 - b + 26)) % 26) + 97);
                 } else {
                     result += blockText[i];
                 }
